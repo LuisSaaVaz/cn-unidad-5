@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="gl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xogo de Repaso: A Enerxía</title>
+    <style>
+        :root {
+            --primary: #ff9800; 
+            --secondary: #ffc107;
+            --accent: #4caf50;
+            --bg: #fffde7;
+            --text: #3e2723;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+            padding: 1.5rem 0;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .game-container {
+            width: 95%;
+            max-width: 750px;
+            margin-top: 2rem;
+            perspective: 1000px;
+        }
+
+        .card {
+            background: white;
+            height: 480px;
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .card.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5rem;
+            box-sizing: border-box;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .card-front {
+            border: 6px solid var(--secondary);
+            background: #fff;
+        }
+
+        .card-back {
+            background: #fff8e1;
+            transform: rotateY(180deg);
+            border: 6px solid var(--accent);
+            overflow-y: auto;
+        }
+
+        .question-text { font-size: 1.6rem; font-weight: bold; margin-bottom: 1rem; color: #bf360c; }
+        .answer-text { font-size: 1.3rem; color: #1b5e20; line-height: 1.5; }
+        
+        .source-tag { 
+            margin-top: 20px; 
+            font-size: 0.85rem; 
+            background: #f1f8e9; 
+            padding: 8px 12px; 
+            border-radius: 10px;
+            color: #555;
+            border: 1px solid #c5e1a5;
+        }
+
+        .controls {
+            margin-top: 2rem;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            padding-bottom: 2rem;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-prev { background: #efebe9; color: #5d4037; }
+        .btn-next { background: var(--accent); color: white; font-weight: bold; }
+        button:hover { transform: scale(1.05); }
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .progress {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #5d4037;
+            min-width: 100px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>⚡ A Enerxía: Repaso 💡</h1>
+    <p>Tarxetas actualizadas segundo a imaxe proporcionada</p>
+</header>
+
+<div class="game-container">
+    <div class="card" id="card" onclick="this.classList.toggle('is-flipped')">
+        <div class="card-face card-front">
+            <div class="question-text" id="question">Cargando...</div>
+            <p style="color: #888;">Toca para xirar 🔄</p>
+        </div>
+        <div class="card-face card-back">
+            <div class="answer-text" id="answer">...</div>
+            <div class="source-tag" id="source"></div>
+        </div>
+    </div>
+</div>
+
+<div class="controls">
+    <button class="btn-prev" id="prevBtn" onclick="prevQuestion()">⬅️ Anterior</button>
+    <div class="progress" id="progress">1 / 80</div>
+    <button class="btn-next" id="nextBtn" onclick="nextQuestion()">Seguinte ➡️</button>
+</div>
+
+<script>
+    const questions = [
+      { q: "¿Qué dos beneficios principales nos proporciona la energía en nuestra vida diaria?", a: "Nos da confort y nos permite realizar múltiples actividades.", s: "Página 1, Apartado: A historia da enerxía" },
+      { q: "Según el texto, ¿qué factores han marcado el progreso de las sociedades a lo largo del tiempo?", a: "El descubrimiento de nuevas fuentes de energía y la mejora de las técnicas para obtenerlas.", s: "Página 1, Apartado: A historia da enerxía" },
+      { q: "Definición de recursos naturales.", a: "Bienes o sustancias presentes en la naturaleza que se pueden emplear para cubrir las necesidades de las personas.", s: "Página 2, Apartado: Recursos naturais" },
+      { q: "¿En qué dos grandes grupos se clasifican los recursos naturales según el uso que se les da?", a: "Materias primas y fuentes de energía.", s: "Página 2, Apartado: Recursos naturais" },
+      { q: "Concepto: Materias primas", a: "Sustancias a partir de las cuales se obtienen materiales para fabricar nuevos productos.", s: "Página 2, Apartado: Materias primas" },
+      { q: "¿Para qué sectores se emplea principalmente la energía obtenida de las fuentes de energía?", a: "Para los transportes, la industria o los hogares.", s: "Página 2, Apartado: Fontes de enerxía" },
+      { q: "¿Cómo se clasifican los recursos naturales según su disponibilidad?", a: "En renovables y no renovables.", s: "Página 3, Apartado: Recursos naturais" },
+      { q: "Definición de recursos renovables.", a: "Recursos prácticamente inagotables porque se renuevan continuamente en la naturaleza.", s: "Página 3, Apartado: Recursos renovables" },
+      { q: "Pon tres ejemplos de recursos renovables.", a: "El viento, los cultivos y la luz solar.", s: "Página 3, Apartado: Recursos renovables" },
+      { q: "Definición de recursos no renovables.", a: "Recursos que se encuentran en cantidades limitadas en la naturaleza y pueden agotarse.", s: "Página 3, Apartado: Recursos non renovables" },
+      { q: "¿Qué tipo de recurso es el petróleo?", a: "Un recurso no renovable.", s: "Página 3, Apartado: Recursos non renovables" },
+      { q: "¿Qué fuente de energía utilizó exclusivamente el ser humano durante miles de años?", a: "La energía del Sol.", s: "Página 4, Apartado: Sabías que...?" },
+      { q: "¿Qué son las materias primas?", a: "Recursos que se transforman para obtener productos útiles.", s: "Página 5, Apartado: As materias primas" },
+      { q: "¿Qué se obtiene de la bauxita?", a: "Aluminio.", s: "Página 5, Apartado: As materias primas" },
+      { q: "¿Cuáles son los tres orígenes de las materias primas?", a: "Animal, vegetal y mineral.", s: "Página 6, Apartado: Orixe das materias primas" },
+      { q: "¿De dónde proceden las materias primas de origen animal?", a: "De la ganadería y de la pesca.", s: "Página 6, Apartado: Orixe das materias primas" },
+      { q: "¿De dónde proceden las materias primas de origen vegetal?", a: "De la agricultura y de los productos forestales.", s: "Página 6, Apartado: Orixe das materias primas" },
+      { q: "¿De dónde se extraen las materias primas de origen mineral?", a: "De la corteza terrestre.", s: "Página 6, Apartado: Orixe das materias primas" },
+      { q: "¿Cómo se clasifican las materias primas según puedan volver a producirse?", a: "En renovables y no renovables.", s: "Página 7, Apartado: Tipos de materias primas" },
+      { q: "¿Qué ocurre si el ritmo de renovación de una materia prima renovable es menor que el de extracción?", a: "Puede agotarse.", s: "Página 7, Apartado: Tipos de materias primas" },
+      { q: "Definición de materias primas no renovables.", a: "Aquellas que una vez agotadas no pueden volver a explotarse.", s: "Página 7, Apartado: Materias primas non renovables" },
+      { q: "¿Qué significa reciclar materiales?", a: "Recuperarlos cuando van a desecharse para volver a utilizarlos.", s: "Página 7, Apartado: Materias primas non renovables" },
+      { q: "Definición de energía.", a: "Capacidad que tiene un cuerpo de producir un cambio en sí mismo o en otros sistemas.", s: "Página 8, Apartado: Fontes de enerxía" },
+      { q: "¿Cómo puede manifestarse la energía?", a: "Mediante movimientos, variaciones de temperatura o transmisión de ondas.", s: "Página 8, Apartado: Fontes de enerxía" },
+      { q: "¿Se crea la energía?", a: "No, se obtiene mediante la transformación de otra forma de energía previa.", s: "Página 8, Apartado: Fontes de enerxía" },
+      { q: "¿Para qué usamos la energía principalmente?", a: "Para obtener movimiento, calor y electricidad.", s: "Página 9, Apartado: Usos da enerxía" },
+      { q: "¿Por qué la electricidad es especialmente útil?", a: "Porque puede transportarse fácilmente a través de cables.", s: "Página 9, Apartado: Usos da enerxía" },
+      { q: "¿Dónde se obtiene la electricidad?", a: "En centrales eléctricas a partir de distintas fuentes de energía.", s: "Página 9, Apartado: Usos da enerxía" },
+      { q: "Definición de fuentes de energía.", a: "Materiales o fenómenos que proporcionan la energía que necesitamos.", s: "Página 10, Apartado: Fontes de enerxía" },
+      { q: "¿Cómo se clasifican las fuentes de energía?", a: "En renovables y no renovables.", s: "Página 10, Apartado: Fontes de enerxía" },
+      { q: "Definición de fuentes de energía renovables.", a: "Fuentes cuya materia u origen no se agota nunca.", s: "Página 10, Apartado: Fontes de enerxía" },
+      { q: "Definición de fuentes de energía no renovables.", a: "Fuentes en las que la materia que produce la energía desaparece a medida que se utiliza.", s: "Página 10, Apartado: Fontes de enerxía" },
+      { q: "¿Cuáles son los combustibles fósiles?", a: "Carbón, petróleo y gas natural.", s: "Página 11, Apartado: Sabías que...?" },
+      { q: "¿De dónde proceden las energías renovables?", a: "De recursos renovables.", s: "Página 12, Apartado: Enerxías renovables" },
+      { q: "¿Por qué se consideran inagotables las energías renovables?", a: "Porque son abundantes y se regeneran constantemente.", s: "Página 12, Apartado: Enerxías renovables" },
+      { q: "¿Qué transforma la energía solar?", a: "La energía del Sol en electricidad o calor.", s: "Página 12, Apartado: Enerxías renovables" },
+      { q: "¿Qué aprovecha la energía marina?", a: "La energía de mares y océanos.", s: "Página 12, Apartado: Enerxías renovables" },
+      { q: "Diferencia entre energía maremotriz y undimotriz.", a: "La maremotriz usa las mareas y la undimotriz las olas.", s: "Página 12, Apartado: Enerxías renovables" },
+      { q: "¿Qué transforma la energía eólica?", a: "La energía del viento en electricidad.", s: "Página 12, Apartado: Enerxías renovables" },
+      { q: "Definición de energía geotérmica.", a: "La energía obtenida del calor acumulado bajo la superficie terrestre.", s: "Página 13, Apartado: Enerxías renovables" },
+      { q: "Definición de biomasa.", a: "Energía obtenida de restos biodegradables de productos biológicos.", s: "Página 13, Apartado: Enerxías renovables" },
+      { q: "Definición de energía hidráulica.", a: "La que utiliza la caída del agua para generar electricidad.", s: "Página 13, Apartado: Enerxías renovables" },
+      { q: "¿Qué ocurre con las energías no renovables a medida que se usan?", a: "Se van agotando.", s: "Página 15, Apartado: Enerxías non renovables" },
+      { q: "¿Cómo se forma el carbón?", a: "A partir de restos vegetales en zonas sin oxígeno durante millones de años.", s: "Página 15, Apartado: Carbón" },
+      { q: "¿Qué produce el carbón al quemarse?", a: "Energía.", s: "Página 15, Apartado: Carbón" },
+      { q: "¿Qué es el petróleo?", a: "Una roca líquida negra formada a partir de seres vivos marinos.", s: "Página 16, Apartado: Petróleo" },
+      { q: "¿Para qué se usa el gas natural?", a: "Para calefacción y para obtener agua caliente.", s: "Página 16, Apartado: Gas natural" },
+      { q: "¿Qué recursos se utilizan en la energía nuclear?", a: "Uranio y plutonio.", s: "Página 18, Apartado: Enerxía nuclear" },
+      { q: "¿Por qué el modelo energético actual es insostenible?", a: "Porque depende de combustibles fósiles finitos.", s: "Página 19, Apartado: Desenvolvemento sostible" }
+    ];
+
+    let currentIdx = 0;
+    const qElem = document.getElementById('question');
+    const aElem = document.getElementById('answer');
+    const sElem = document.getElementById('source');
+    const pElem = document.getElementById('progress');
+    const card = document.getElementById('card');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function updateCard() {
+        card.classList.remove('is-flipped');
+        prevBtn.disabled = (currentIdx === 0);
+        nextBtn.disabled = (currentIdx === questions.length - 1);
+
+        setTimeout(() => {
+            qElem.innerText = questions[currentIdx].q;
+            aElem.innerText = questions[currentIdx].a;
+            sElem.innerText = "📍 Referencia: " + questions[currentIdx].s;
+            pElem.innerText = `${currentIdx + 1} / ${questions.length}`;
+        }, 150);
+    }
+
+    function nextQuestion() {
+        if (currentIdx < questions.length - 1) {
+            currentIdx++;
+            updateCard();
+        }
+    }
+
+    function prevQuestion() {
+        if (currentIdx > 0) {
+            currentIdx--;
+            updateCard();
+        }
+    }
+
+    updateCard();
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === "ArrowRight") nextQuestion();
+        if (e.key === "ArrowLeft") prevQuestion();
+        if (e.key === " " || e.key === "Enter") card.classList.toggle('is-flipped');
+    });
+</script>
+
+</body>
+</html>
