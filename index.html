@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html lang="gl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xogo de Repaso: A Enerxía</title>
-    <style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xogo de Repaso: A Enerxía</title>
+  <style>
     :root {
         --primary: #ff9800; 
         --secondary: #ffc107;
         --accent: #4caf50;
         --bg: #fffde7;
         --text: #3e2723;
+        --inactive: #bdbdbd; /* Gris para botones inactivos */
     }
 
     body {
@@ -21,7 +22,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        max-height: 100vh;
+        min-height: 100vh;
     }
 
     header {
@@ -38,16 +39,40 @@
         font-size: 1.5rem;
     }
 
+    .mode-selector {
+        margin-top: 1rem;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .btn-mode {
+        background: var(--inactive); /* Fondo gris por defecto */
+        color: white;               /* Texto blanco por defecto */
+        border: 2px solid white;
+        font-weight: bold;
+        padding: 8px 20px;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-mode.active {
+        background: white;          /* Fondo blanco cuando está activo */
+        color: var(--primary);      /* Texto naranja cuando está activo */
+        border: 2px solid white;
+    }
+
     .game-container {
         width: 95%;
         max-width: 600px;
-        margin-top: 1.5rem;
+        margin-top: 1rem;
         perspective: 1000px;
     }
 
     .card {
         background: white;
-        min-height: 400px; /* Altura mínima para mantener consistencia */
+        min-height: 400px;
         height: auto;
         cursor: pointer;
         position: relative;
@@ -74,7 +99,7 @@
         box-sizing: border-box;
         border-radius: 20px;
         text-align: center;
-        overflow-y: auto; /* Permite scroll interno si el texto es muy largo */
+        overflow-y: auto;
     }
 
     .card-front {
@@ -145,20 +170,22 @@
         text-align: center;
     }
 
-    /* Ajuste para pantallas muy pequeñas */
     @media (max-height: 600px) {
         .card { min-height: 300px; }
         .question-text { font-size: 1.1rem; }
         .answer-text { font-size: 1rem; }
     }
-</style>
+  </style>
 
 </head>
 <body>
 
 <header>
     <h1>⚡ A Enerxía: Repaso 💡</h1>
-    <p>Tarxetas actualizadas segundo a imaxe proporcionada</p>
+    <div class="mode-selector">
+        <button id="modeTema" class="btn-mode active" onclick="setMode('tema')">TEMA</button>
+        <button id="modeResumen" class="btn-mode" onclick="setMode('resumen')">RESUMEN</button>
+    </div>
 </header>
 
 <div class="game-container">
@@ -181,90 +208,134 @@
 </div>
 
 <script>
-    const questions = [
-      { q: "¿Qué dos beneficios principales nos proporciona la energía en nuestra vida diaria?", a: "Nos da confort y nos permite realizar múltiples actividades. Ubicación: Página 1, Apartado: A historia da enerxía", s: "" },
-      { q: "Según el texto, ¿qué factores han marcado el progreso de las sociedades a lo largo del tiempo?", a: "El descubrimiento de nuevas fuentes de energía y la mejora de las técnicas para obtenerlas. Ubicación: Página 1, Apartado: A historia da enerxía", s: "" },
-      { q: "Definición de recursos naturales.", a: "Bienes o sustancias presentes en la naturaleza que se pueden emplear para cubrir las necesidades de las personas. Ubicación: Página 2, Apartado: Recursos naturais", s: "" },
-      { q: "¿En qué dos grandes grupos se clasifican los recursos naturales según el uso que se les dé?", a: "Materias primas y fuentes de energía. Ubicación: Página 2, Apartado: Recursos naturais", s: "" },
-      { q: "Concepto: Materias primas", a: "Sustancias a partir de las cuales se obtienen materiales para fabricar nuevos productos (ej. madera o minerales). Ubicación: Página 2, Apartado: Recursos naturais", s: "" },
-      { q: "¿Para qué sectores se emplea principalmente la energía obtenida de las fuentes de energía?", a: "Para los transportes, la industria o los hogares. Ubicación: Página 2, Apartado: Recursos naturais", s: "" },
-      { q: "¿Qué caracteriza a los recursos naturales renovables?", a: "Son prácticamente inagotables porque se renuevan continuamente en la naturaleza. Ubicación: Página 2, Apartado: Recursos naturais", s: "" },
-      { q: "Tres ejemplos de recursos naturales renovables.", a: "El viento, los cultivos y la luz del sol. Ubicación: Página 2, Apartado: Recursos naturais", s: "" },
-      { q: "¿Por qué se dice que los recursos no renovables pueden agotarse?", a: "Porque se encuentran en la naturaleza en cantidades limitadas y no se pueden perpetuar tras su uso. Ubicación: Página 2, Apartado: Recursos naturais", s: "" },
-      { q: "¿Cuál fue la única fuente de luz y calor para el ser humano durante miles de años?", a: "La energía del sol. Ubicación: Página 2, Apartado: Sabías que...?", s: "" },
-      { q: "Antes de las máquinas, ¿qué usaban los humanos como energía para realizar trabajos?", a: "La energía de sus propios músculos. Ubicación: Página 2, Apartado: Sabías que...?", s: "" },
-      { q: "¿Qué deben sufrir las materias primas desde su obtención hasta convertirse en artículos útiles?", a: "Diferentes transformaciones. Ubicación: Página 3, Apartado: As materias primas", s: "" },
-      { q: "¿De qué mineral se extrae el aluminio para fabricar objetos?", a: "De la bauxita. Ubicación: Página 3, Apartado: As materias primas", s: "" },
-      { q: "¿Hace cuántos años comenzaron los humanos a controlar el fuego?", a: "Hace unos 500,000 años. Ubicación: Página 3, Apartado: Sabías que...?", s: "" },
-      { q: "¿Cuál fue la primera fuente de energía que el ser humano consiguió dominar?", a: "El fuego (combustión de materia vegetal). Ubicación: Página 3, Apartado: Sabías que...?", s: "" },
-      { q: "¿Cuáles son los tres posibles orígenes de las materias primas?", a: "Animal, vegetal y mineral. Ubicación: Página 4, Apartado: Orixe das materias primas", s: "" },
-      { q: "Dos ejemplos de materias primas de origen animal.", a: "La lana y las pieles. Ubicación: Página 4, Apartado: Orixe das materias primas", s: "" },
-      { q: "Dos ejemplos de materias primas de origen vegetal.", a: "La madera y el algodón (productos de la agricultura o forestales). Ubicación: Página 4, Apartado: Orixe das materias primas", s: "" },
-      { q: "¿De dónde se extraen las materias primas de origen mineral?", a: "De la corteza terrestre. Ubicación: Página 4, Apartado: Orixe das materias primas", s: "" },
-      { q: "Menciona tres materias primas de origen mineral.", a: "Hierro, oro, sal (o azufre y rocas). Ubicación: Página 4, Apartado: Orixe das materias primas", s: "" },
-      { q: "¿Qué condición debe cumplirse para que una materia prima renovable no se agote?", a: "Que el ritmo de extracción no sea mayor que el ritmo al que se renueva. Ubicación: Página 4, Apartado: Tipos de materias primas", s: "" },
-      { q: "Dos ejemplos de materias primas no renovables.", a: "El mármol y el carbón. Ubicación: Página 4, Apartado: Materias primas non renovables", s: "" },
-      { q: "¿Cuál es una forma efectiva de prolongar la vida de los recursos limitados de la Tierra?", a: "Reciclar todos los materiales que sea posible. Ubicación: Página 4, Apartado: Materias primas non renovables", s: "" },
-      { q: "Concepto: Energía", a: "Capacidad que tiene un cuerpo de producir un cambio en él mismo o en otros sistemas. Ubicación: Página 5, Apartado: Fontes de enerxía", s: "" },
-      { q: "¿De qué formas pueden manifestarse los cambios producidos por la energía?", a: "Con movimientos, variaciones de temperatura o transmisión de ondas. Ubicación: Página 5, Apartado: Fontes de enerxía", s: "" },
-      { q: "¿Se puede generar energía de la nada según el principio de transformación?", a: "No, se obtiene mediante la transformación de otra forma de energía previa. Ubicación: Página 5, Apartado: Fontes de enerxía", s: "" },
-      { q: "¿Por qué la quema de petróleo es una transformación irreversible?", a: "Porque una vez gastada la energía que contenía, el petróleo no se puede recuperar. Ubicación: Página 5, Apartado: Fontes de enerxía", s: "" },
-      { q: "¿Para qué tres propósitos principales usamos la energía los humanos?", a: "Obtener movimiento, obtener calor y obtener electricidad. Ubicación: Página 5, Apartado: Usos da enerxía", s: "" },
-      { q: "¿Por qué la electricidad es considerada una forma de energía muy útil?", a: "Porque se puede transportar fácilmente a través de cables. Ubicación: Página 5, Apartado: Usos da enerxía", s: "" },
-      { q: "¿Dónde se transforma la energía de distintas fuentes en electricidad?", a: "En las centrales eléctricas. Ubicación: Página 5, Apartado: Usos da enerxía", s: "" },
-      { q: "¿Hace cuántos años domesticó el ser humano a los primeros animales para ayudar en sus tareas?", a: "Hace unos 10,000 años. Ubicación: Página 5, Apartado: Un reto antes de seguir", s: "" },
-      { q: "Las fuentes de energía cuyo origen nunca se agota se llaman _____.", a: "Fuentes de energía renovables. Ubicación: Página 6, Apartado: Fontes de enerxía", s: "" },
-      { q: "¿Qué ocurre con la materia que produce energía en las fuentes no renovables?", a: "Desaparece a medida que se usa. Ubicación: Página 6, Apartado: Fontes de enerxía", s: "" },
-      { q: "¿Qué se prevé que ocurra con los combustibles fósiles en las próximas décadas?", a: "Que su escasez resulte ya palpable. Ubicación: Página 6, Apartado: Sabías que...?", s: "" },
-      { q: "¿Qué dos productos finales se obtienen al transformar la energía solar?", a: "Electricidad o calor. Ubicación: Página 6, Apartado: Enerxías renovables", s: "" },
-      { q: "¿Qué diferencia hay entre la energía maremotriz y la undimotriz?", a: "La maremotriz usa las mareas y la undimotriz emplea la energía de las ondas (olas). Ubicación: Página 6, Apartado: Enerxías renovables", s: "" },
-      { q: "Energía que transforma la fuerza del viento en electricidad.", a: "Energía eólica. Ubicación: Página 6, Apartado: Enerxías renovables", s: "" },
-      { q: "Concepto: Energía geotérmica", a: "Aprovechamiento de la energía acumulada en forma de calor debajo de la superficie de la tierra. Ubicación: Página 7, Apartado: Enerxías renovables", s: "" },
-      { q: "¿A partir de qué se obtiene la energía de biomasa?", a: "A partir de restos biodegradables de productos biológicos. Ubicación: Página 7, Apartado: Enerxías renovables", s: "" },
-      { q: "¿Qué fenómeno natural aprovecha la energía hidráulica para generar electricidad?", a: "La caída del agua desde una cierta altura. Ubicación: Página 7, Apartado: Enerxías renovables", s: "" },
-      { q: "¿Cuándo se construyeron los primeros molinos de agua para aprovechar la energía hidráulica?", a: "En el siglo III a. C. Ubicación: Página 7, Apartado: Sabías que...?", s: "" },
-      { q: "¿Cómo se forma el carbón a lo largo de millones de años?", a: "Por la acumulación de restos vegetales en zonas sin oxígeno (pantanos o lagunas). Ubicación: Página 8, Apartado: Carbón", s: "" },
-      { q: "Propiedades físicas del carbón.", a: "Es una roca de color negro que produce energía al quemarse. Ubicación: Página 8, Apartado: Carbón", s: "" },
-      { q: "¿A partir de qué seres vivos se forma el petróleo?", a: "De seres vivos que se acumularon en el fondo de mares y lagunas. Ubicación: Página 8, Apartado: Petróleo", s: "" },
-      { q: "Menciona dos productos derivados del petróleo que no sean combustibles.", a: "Plásticos y pinturas. Ubicación: Página 8, Apartado: Petróleo", s: "" },
-      { q: "¿Qué grave consecuencia ambiental pueden tener los accidentes de petroleros?", a: "Producen mareas negras con consecuencias muy graves para el ecosistema. Ubicación: Página 8, Apartado: Sabías que...?", s: "" },
-      { q: "¿Qué fuente de energía utilizaba la antigua máquina de vapor?", a: "El carbón. Ubicación: Página 8, Apartado: Un reto antes de seguir", s: "" },
-      { q: "¿Qué es el gas natural?", a: "Una mezcla de gases que se puede quemar para producir energía. Ubicación: Página 8, Apartado: Gas natural", s: "" },
-      { q: "¿Qué dos recursos naturales se emplean para obtener energía nuclear?", a: "El plutonio y el uranio. Ubicación: Página 9, Apartado: Enerxía nuclear", s: "" },
-      { q: "¿Cuántas toneladas de carbón se necesitan para igualar la energía de un solo kilo de uranio?", a: "Unas mil toneladas. Ubicación: Página 9, Apartado: Sabías que...?", s: "" },
-      { q: "¿Cuál es el principal inconveniente de la producción de energía nuclear?", a: "La radiación que se produce es peligrosa. Ubicación: Página 9, Apartado: Sabías que...?", s: "" },
-      { q: "¿Por qué se considera insostenible el modelo energético mundial actual?", a: "Porque el planeta no puede suministrar indefinidamente los recursos que exige el modelo basado en combustibles fósiles. Ubicación: Página 9, Apartado: Desenvolvementosostible", s: "" },
-      { q: "Concepto: Modelo sostenible", a: "Modelo que permite mejorar nuestra vida pero de forma respetuosa con la Tierra. Ubicación: Página 9, Apartado: Desenvolvementosostible", s: "" },
-      { q: "¿Quién fue Wangari Muta Maathai y por qué recibió el Premio Nobel de la Paz?", a: "Bióloga keniana premiada en 2004 por su contribución al desarrollo sostenible. Ubicación: Página 9, Apartado: Sabías que...?", s: "" },
-      { q: "¿En qué consistió el 'Movimiento Cinturón Verde' de Wangari Maathai?", a: "En la plantación de millones de árboles en su país (Kenia). Ubicación: Página 9, Apartado: Sabías que...?", s: "" },
-      { q: "¿Qué ocurre con los recursos naturales a medida que se agotan en el modelo actual?", a: "Cada vez es más difícil y costoso conseguirlos. Ubicación: Página 10, Apartado: O modelo actual", s: "" },
-      { q: "Entre las energías renovables y no renovables, ¿cuáles son más contaminantes?", a: "Las energías no renovables. Ubicación: Página 10, Apartado: O modelo actual", s: "" },
-      { q: "¿Cuál es el primer pilar de un modelo energético sostenible respecto al acceso?", a: "Que todos y todas podamos acceder a la energía a un precio razonable. Ubicación: Página 10, Apartado: Modelos enerxéticos sostibles", s: "" },
-      { q: "¿Qué tipo de energías son hoy las más respetuosas con el medio ambiente?", a: "Las energías renovables. Ubicación: Página 10, Apartado: Modelos enerxéticos sostibles", s: "" },
-      { q: "¿Qué día se celebra el Día Internacional de la Energía Limpia?", a: "El 26 de abril. Ubicación: Página 10, Apartado: Sabías que...?", s: "" },
-      { q: "¿Cuántos Objetivos de Desarrollo Sostenible (ODS) establecieron los líderes mundiales?", a: "17 objetivos. Ubicación: Página 11, Apartado: Obxectivos de Desenvolvemento Sostible (ODS)", s: "" },
-      { q: "¿Cuál es el plazo de tiempo fijado para alcanzar las metas de los ODS desde 2015?", a: "15 años. Ubicación: Página 11, Apartado: Obxectivos de Desenvolvemento Sostible (ODS)", s: "" },
-      { q: "Definición: Biodegradable", a: "Materia que puede ser descompuesta por bacterias y otros organismos de la naturaleza. Ubicación: Página 11, Apartado: Glosario", s: "" },
-      { q: "¿Qué es la corteza terrestre?", a: "Es la capa más superficial de la Tierra, formada por rocas, y puede ser continental u oceánica. Ubicación: Página 11, Apartado: Glosario", s: "" },
-      { q: "Define combustibles fósiles según el glosario.", a: "Depósitos biológicos formados por descomposición de animales o plantas de hace millones de años (petróleo, carbón o gas). Ubicación: Página 11, Apartado: Glosario", s: "" },
-      { q: "Concepto: Ondas", a: "Perturbaciones que se propagan en un medio a partir de un punto de origen (ej. el sonido). Ubicación: Página 11, Apartado: Glosario", s: "" },
-      { q: "¿Qué son los productos biológicos?", a: "Productos que se obtienen directamente a partir de seres vivos. Ubicación: Página 11, Apartado: Glosario", s: "" },
-      { q: "A diferencia de las materias primas, las _____ se emplean para obtener energía para transporte e industria.", a: "Fuentes de energía. Ubicación: Página 2, Apartado: Recursos naturais", s: "" },
-      { q: "Los cultivos agrícolas se consideran recursos renovables porque se renuevan en _____ tiempo.", a: "Poco. Ubicación: Página 2, Apartado: Recursos naturais", s: "" },
-      { q: "Los bosques son recursos renovables, pero tardan _____ tiempo en renovarse.", a: "Mucho. Ubicación: Página 2, Apartado: Recursos naturais", s: "" },
-      { q: "¿Qué tipo de origen tiene la materia prima como la lana?", a: "Origen animal. Ubicación: Página 4, Apartado: Orixe das materias primas", s: "" },
-      { q: "¿Qué tipo de origen tiene la materia prima como la madera?", a: "Origen vegetal. Ubicación: Página 4, Apartado: Orixe das materias primas", s: "" },
-      { q: "¿Qué tipo de origen tiene la materia prima como el oro o la sal?", a: "Origen mineral. Ubicación: Página 4, Apartado: Orixe das materias primas", s: "" },
-      { q: "La energía es la capacidad de producir un cambio; estos cambios pueden ser movimiento o variaciones de _____.", a: "Temperatura. Ubicación: Página 5, Apartado: Fontes de enerxía", s: "" },
-      { q: "La energía hidráulica aprovecha la caída del agua para generar energía _____.", a: "Eléctrica. Ubicación: Página 7, Apartado: Enerxías renovables", s: "" },
-      { q: "El petróleo es una roca _____ de color negro.", a: "Líquida. Ubicación: Página 8, Apartado: Petróleo", s: "" },
-      { q: "El uranio permite producir mucha energía pero emite _____.", a: "Radiación. Ubicación: Página 9, Apartado: Sabías que...?", s: "" },
-      { q: "El modelo energético actual depende excesivamente de los _____.", a: "Combustibles fósiles. Ubicación: Página 9, Apartado: Desenvolvementosostible", s: "" },
-      { q: "¿En qué año se comprometieron los líderes mundiales con los ODS?", a: "En 2015. Ubicación: Página 11, Apartado: Obxectivos de Desenvolvemento Sostible (ODS)", s: "" },
-      { q: "Las materias primas de origen mineral se extraen de la _____ terrestre.", a: "Corteza (o codia). Ubicación: Página 4, Apartado: Orixe das materias primas", s: "" }
+    const questionsTema = [
+      { q: "¿Qué dos beneficios principales nos proporciona la energía en nuestra vida diaria?", a: "Nos da confort y nos permite realizar múltiples actividades.", s: "A historia da enerxía" },
+      { q: "Según el texto, ¿qué factores han marcado el progreso de las sociedades a lo largo del tiempo?", a: "El descubrimiento de nuevas fuentes de energía y la mejora de las técnicas para obtenerlas.", s: "A historia da enerxía" },
+      { q: "Definición de recursos naturales.", a: "Bienes o sustancias presentes en la naturaleza que se pueden emplear para cubrir las necesidades de las personas.", s: "Recursos naturais" },
+      { q: "¿En qué dos grandes grupos se clasifican los recursos naturales según el uso que se les dé?", a: "Materias primas y fuentes de energía.", s: "Recursos naturais" },
+      { q: "Concepto: Materias primas", a: "Sustancias a partir de las cuales se obtienen materiales para fabricar nuevos productos (ej. madera o minerales).", s: "Recursos naturais" },
+      { q: "¿Para qué sectores se emplea principalmente la energía obtenida de las fuentes de energía?", a: "Para los transportes, la industria o los hogares.", s: "Recursos naturais" },
+      { q: "¿Qué caracteriza a los recursos naturales renovables?", a: "Son prácticamente inagotables porque se renuevan continuamente en la naturaleza.", s: "Recursos naturais" },
+      { q: "Tres ejemplos de recursos naturales renovables.", a: "El viento, los cultivos y la luz del sol.", s: "Recursos naturais" },
+      { q: "¿Por qué se dice que los recursos no renovables pueden agotarse?", a: "Porque se encuentran en la naturaleza en cantidades limitadas y no se pueden perpetuar tras su uso.", s: "Recursos naturais" },
+      { q: "¿Cuál fue la única fuente de luz y calor para el ser humano durante miles de años?", a: "La energía del sol.", s: "Sabías que...?" },
+      { q: "Antes de las máquinas, ¿qué usaban los humanos como energía para realizar trabajos?", a: "La energía de sus propios músculos.", s: "Sabías que...?" },
+      { q: "¿Qué deben sufrir las materias primas desde su obtención hasta convertirse en artículos útiles?", a: "Diferentes transformaciones.", s: "As materias primas" },
+      { q: "¿De qué mineral se extrae el aluminio para fabricar objetos?", a: "De la bauxita.", s: "As materias primas" },
+      { q: "¿Hace cuántos años comenzaron los humanos a controlar el fuego?", a: "Hace unos 500,000 años.", s: "Sabías que...?" },
+      { q: "¿Cuál fue la primera fuente de energía que el ser humano consiguió dominar?", a: "El fuego (combustión de materia vegetal).", s: "Sabías que...?" },
+      { q: "¿Cuáles son los tres posibles orígenes de las materias primas?", a: "Animal, vegetal y mineral.", s: "Orixe das materias primas" },
+      { q: "Two ejemplos de materias primas de origen animal.", a: "La lana y las pieles.", s: "Orixe das materias primas" },
+      { q: "Two ejemplos de materias primas de origen vegetal.", a: "La madera y el algodón (productos de la agricultura o forestales).", s: "Orixe das materias primas" },
+      { q: "¿De dónde se extraen las materias primas de origen mineral?", a: "De la corteza terrestre.", s: "Orixe das materias primas" },
+      { q: "Menciona tres materias primas de origen mineral.", a: "Hierro, oro, sal (o azufre y rocas).", s: "Orixe das materias primas" },
+      { q: "¿Qué condición debe cumplirse para que una materia prima renovable no se agote?", a: "Que el ritmo de extracción no sea mayor que el ritmo al que se renueva.", s: "Tipos de materias primas" },
+      { q: "Two ejemplos de materias primas no renovables.", a: "El mármol y el carbón.", s: "Materias primas non renovables" },
+      { q: "¿Cuál es una forma efectiva de prolongar la vida de los recursos limitados de la Tierra?", a: "Reciclar todos los materiales que sea posible.", s: "Materias primas non renovables" },
+      { q: "Concepto: Energía", a: "Capacidad que tiene un cuerpo de producir un cambio en él mismo o en otros sistemas.", s: "Fontes de enerxía" },
+      { q: "¿De qué formas pueden manifestarse los cambios producidos por la energía?", a: "Con movimientos, variaciones de temperatura o transmisión de ondas.", s: "Fontes de enerxía" },
+      { q: "¿Se puede generar energía de la nada según el principio de transformación?", a: "No, se obtiene mediante la transformación de otra forma de energía previa.", s: "Fontes de enerxía" },
+      { q: "¿Por qué la quema de petróleo es una transformación irreversible?", a: "Porque una vez gastada la energía que contenía, el petróleo no se puede recuperar.", s: "Fontes de enerxía" },
+      { q: "¿Para qué tres propósitos principales usamos la energía los humanos?", a: "Obtener movimiento, obtener calor y obtener electricidad.", s: "Usos da enerxía" },
+      { q: "¿Por qué la electricidad es considerada una forma de energía muy útil?", a: "Porque se puede transportar fácilmente a través de cables.", s: "Usos da enerxía" },
+      { q: "¿Dónde se transforma la energía de distintas fuentes en electricidad?", a: "En las centrales eléctricas.", s: "Usos da enerxía" },
+      { q: "¿Hace cuántos años domesticó el ser humano a los primeros animales para ayudar en sus tareas?", a: "Hace unos 10,000 años.", s: "Un reto antes de seguir" },
+      { q: "Las fuentes de energía cuyo origen nunca se agota se llaman _____.", a: "Fuentes de energía renovables.", s: "Fontes de enerxía" },
+      { q: "¿Qué ocurre con la materia que produce energía en las fuentes no renovables?", a: "Desaparece a medida que se usa.", s: "Fontes de enerxía" },
+      { q: "¿Qué se prevé que ocurra con los combustibles fósiles en las próximas décadas?", a: "Que su escasez resulte ya palpable.", s: "Sabías que...?" },
+      { q: "¿Qué dos productos finales se obtienen al transformar la energía solar?", a: "Electricidad o calor.", s: "Enerxías renovables" },
+      { q: "¿Qué diferencia hay entre la energía maremotriz y la undimotriz?", a: "La maremotriz usa las mareas y la undimotriz emplea la energía de las ondas (olas).", s: "Enerxías renovables" },
+      { q: "Energía que transforma la fuerza del viento en electricidad.", a: "Energía eólica.", s: "Enerxías renovables" },
+      { q: "Concepto: Energía geotérmica", a: "Aprovechamiento de la energía acumulada en forma de calor debajo de la superficie de la tierra.", s: "Enerxías renovables" },
+      { q: "¿A partir de qué se obtiene la energía de biomasa?", a: "A partir de restos biodegradables de productos biológicos.", s: "Enerxías renovables" },
+      { q: "¿Qué fenómeno natural aprovecha la energía hidráulica para generar electricidad?", a: "La caída del agua desde una cierta altura.", s: "Enerxías renovables" },
+      { q: "¿Cuándo se construyeron los primeros molinos de agua para aprovechar la energía hidráulica?", a: "En el siglo III a. C.", s: "Sabías que...?" },
+      { q: "¿Cómo se forma el carbón a lo largo de millones de años?", a: "Por la acumulación de restos vegetales en zonas sin oxígeno (pantanos o lagunas).", s: "Carbón" },
+      { q: "Propiedades físicas del carbón.", a: "Es una roca de color negro que produce energía al quemarse.", s: "Carbón" },
+      { q: "¿A partir de qué seres vivos se forma el petróleo?", a: "De seres vivos que se acumularon en el fondo de mares y lagunas.", s: "Petróleo" },
+      { q: "Menciona dos productos derivados del petróleo que no sean combustibles.", a: "Plásticos y pinturas.", s: "Petróleo" },
+      { q: "¿Qué grave consecuencia ambiental pueden tener los accidentes de petroleros?", a: "Producen mareas negras con consecuencias muy graves para el ecosistema.", s: "Sabías que...?" },
+      { q: "¿Qué fuente de energía utilizaba la antigua máquina de vapor?", a: "El carbón.", s: "Un reto antes de seguir" },
+      { q: "¿Qué es el gas natural?", a: "Una mezcla de gases que se puede quemar para producir energía.", s: "Gas natural" },
+      { q: "¿Qué dos recursos naturales se emplean para obtener energía nuclear?", a: "El plutonio y el uranio.", s: "Enerxía nuclear" },
+      { q: "¿Cuántas toneladas de carbón se necesitan para igualar la energía de un solo kilo de uranio?", a: "Unas mil toneladas.", s: "Sabías que...?" },
+      { q: "¿Cuál es el principal inconveniente de la producción de energía nuclear?", a: "La radiación que se produce es peligrosa.", s: "Sabías que...?" },
+      { q: "¿Por qué se considera insostenible el modelo energético mundial actual?", a: "Porque el planeta no puede suministrar indefinidamente los recursos que exige el modelo basado en combustibles fósiles.", s: "Desenvolvementosostible" },
+      { q: "Concepto: Modelo sostenible", a: "Modelo que permite mejorar nuestra vida pero de forma respetuosa con la Tierra.", s: "Desenvolvementosostible" },
+      { q: "¿Quién fue Wangari Muta Maathai y por qué recibió el Premio Nobel de la Paz?", a: "Bióloga keniana premiada en 2004 por su contribución al desarrollo sostenible.", s: "Sabías que...?" },
+      { q: "¿En qué consistió el 'Movimiento Cinturón Verde' de Wangari Maathai?", a: "En la plantación de millones de árboles en su país (Kenia).", s: "Sabías que...?" },
+      { q: "¿Qué ocurre con los recursos naturales a medida que se agotan en el modelo actual?", a: "Cada vez es más difícil y costoso conseguirlos.", s: "O modelo actual" },
+      { q: "Entre las energías renovables y no renovables, ¿cuáles son más contaminantes?", a: "Las energías no renovables.", s: "O modelo actual" },
+      { q: "¿Cuál es el primer pilar de un modelo energético sostenible respecto al acceso?", a: "Que todos y todas podamos acceder a la energía a un precio razonable.", s: "Modelos enerxéticos sostibles" },
+      { q: "¿Qué tipo de energías son hoy las más respetuosas con el medio ambiente?", a: "Las energías renovables.", s: "Modelos enerxéticos sostibles" },
+      { q: "¿Qué día se celebra el Día Internacional de la Energía Limpia?", a: "El 26 de abril.", s: "Sabías que...?" },
+      { q: "¿Cuántos Objetivos de Desarrollo Sostenible (ODS) establecieron los líderes mundiales?", a: "17 objetivos.", s: "Obxectivos de Desenvolvemento Sostible (ODS)" },
+      { q: "¿Cuál es el plazo de tiempo fijado para alcanzar las metas de los ODS desde 2015?", a: "15 años.", s: "Obxectivos de Desenvolvemento Sostible (ODS)" },
+      { q: "Definición: Biodegradable", a: "Materia que puede ser descompuesta por bacterias y otros organismos de la naturaleza.", s: "Glosario" },
+      { q: "¿Qué es la corteza terrestre?", a: "Es la capa más superficial de la Tierra, formada por rocas, y puede ser continental u oceánica.", s: "Glosario" },
+      { q: "Define combustibles fósiles según el glosario.", a: "Depósitos biológicos formados por descomposición de animales o plantas de hace millones de años (petróleo, carbón o gas).", s: "Glosario" },
+      { q: "Concepto: Ondas", a: "Perturbaciones que se propagan en un medio a partir de un punto de origen (ej. el sonido).", s: "Glosario" },
+      { q: "¿Qué son los productos biológicos?", a: "Productos que se obtienen directamente a partir de seres vivos.", s: "Glosario" },
+      { q: "A diferencia de las materias primas, las _____ se emplean para obtener energía para transporte e industria.", a: "Fuentes de energía.", s: "Recursos naturais" },
+      { q: "Los cultivos agrícolas se consideran recursos renovables porque se renuevan en _____ tiempo.", a: "Poco.", s: "Recursos naturais" },
+      { q: "Los bosques son recursos renovables, pero tardan _____ tiempo en renovarse.", a: "Mucho.", s: "Recursos naturais" },
+      { q: "¿Qué tipo de origen tiene la materia prima como la lana?", a: "Origen animal.", s: "Orixe das materias primas" },
+      { q: "¿Qué tipo de origen tiene la materia prima como la madera?", a: "Origen vegetal.", s: "Orixe das materias primas" },
+      { q: "¿Qué tipo de origen tiene la materia prima como el oro o la sal?", a: "Origen mineral.", s: "Orixe das materias primas" },
+      { q: "La energía es la capacidad de producir un cambio; estos cambios pueden ser movimiento o variaciones de _____.", a: "Temperatura.", s: "Fontes de enerxía" },
+      { q: "La energía hidráulica aprovecha la caída del agua para generar energía _____.", a: "Eléctrica.", s: "Enerxías renovables" },
+      { q: "El petróleo es una roca _____ de color negro.", a: "Líquida.", s: "Petróleo" },
+      { q: "El uranio permite producir mucha energía pero emite _____.", a: "Radiación.", s: "Sabías que...?" },
+      { q: "El modelo energético actual depende excesivamente de los _____.", a: "Combustibles fósiles.", s: "Desenvolvementosostible" },
+      { q: "¿En qué año se comprometieron los líderes mundiales con los ODS?", a: "En 2015.", s: "Obxectivos de Desenvolvemento Sostible (ODS)" },
+      { q: "Las materias primas de origen mineral se extraen de la _____ terrestre.", a: "Corteza (o codia).", s: "Orixe das materias primas" }
     ];
 
+    const questionsResumen = [
+      { q: "¿Qué son los recursos naturales?", a: "Son cosas que tomamos de la naturaleza y que usamos para poder vivir.", s: "Los recursos naturales" },
+      { q: "¿Cuáles son los dos grandes tipos de recursos naturales según su función?", a: "Las materias primas y las fuentes de energía.", s: "Los recursos naturales" },
+      { q: "¿Para qué sirven las materias primas?", a: "Sirven para fabricar cosas nuevas, como por ejemplo usar la madera para hacer un mueble.", s: "Los recursos naturales" },
+      { q: "¿Qué función tienen las fuentes de energía?", a: "Sirven para producir energía, como el sol, el petróleo o el carbón.", s: "Los recursos naturales" },
+      { q: "¿Cómo se llaman los recursos que no se acaban fácilmente porque la naturaleza los regenera?", a: "Recursos renovables.", s: "Clasificación según disponibilidad" },
+      { q: "Menciona tres ejemplos de recursos naturales renovables.", a: "El viento, los cultivos y el sol.", s: "Clasificación según disponibilidad" },
+      { q: "¿Qué son los recursos no renovables?", a: "Son recursos limitados que pueden llegar a agotarse, como los combustibles fósiles.", s: "Clasificación según disponibilidad" },
+      { q: "¿De qué tres orígenes pueden ser las materias primas?", a: "Pueden ser de origen animal, vegetal o mineral.", s: "Origen de las materias primas" },
+      { q: "¿Qué son las materias primas de origen animal y cuáles son algunos ejemplos?", a: "Son las que vienen de los animales. Ejemplos: la lana, las pieles o la pesca.", s: "Origen de las materias primas" },
+      { q: "¿Qué son las materias primas de origen vegetal y qué ejemplo principal existe?", a: "Son las que vienen de las plantas. Ejemplo: la madera.", s: "Origen de las materias primas" },
+      { q: "¿Qué son las materias primas de origen mineral y qué ejemplos podemos encontrar?", a: "Son las que se obtienen de la tierra. Ejemplos: el hierro, el oro o la sal.", s: "Origen de las materias primas" },
+      { q: "¿Qué son las materias primas renovables?", a: "las que pueden volver a producirse como las de origen animal o vegetal. Ejemplos: la lana y la madera.", s: "TIPOS DE MATERIAS PRIMAS" },
+      { q: "¿Qué son las materias primas no renovables?", a: "No se regeneran y pueden acabarse. Ejemplos: el mármol y el carbón.", s: "TIPOS DE MATERIAS PRIMAS" },
+      { q: "¿Qué puede pasar si usamos los recursos más rápido de lo que la naturaleza los repone?", a: "Que los recursos pueden llegar a agotarse aunque sean renovables.", s: "TIPOS DE MATERIAS PRIMAS" },
+      { q: "¿Qué dos acciones son importantes para cuidar los recursos naturales?", a: "Es importante reciclarlos y usarlos bien.", s: "Cuidado de los recursos" },
+      { q: "¿Qué es la energía?", a: "Es lo que permite producir cambios como el movimiento, el calor o la luz.", s: "Fuentes de energía" },
+      { q: "Completa la frase sobre la energía: 'La energía no se crea, se ____ de una forma a otra'.", a: "Transforma.", s: "Fuentes de energía" },
+      { q: "¿Son todas las transformaciones de energía reversibles?", a: "No, algunas transformaciones no se pueden deshacer como al quemar el petróleo.", s: "Fuentes de energía" },
+      { q: "Usos de la energía.", a: "Movimiento, calor y electricidad.", s: "Usos de la energía" },
+      { q: "Menciona dos usos de la energía para el movimiento.", a: "Hacer funcionar los coches y las máquinas.", s: "Usos de la energía" },
+      { q: "Menciona dos usos de la energía para producir calor.", a: "La calefacción y los hornos.", s: "Usos de la energía" },
+      { q: "Menciona tres usos de la energía para producir electricidad.", a: "Para las casas , la industria y el comercio.", s: "Usos de la energía" },
+      { q: "¿De dónde se obtiene la electricidad?", a: "Se obtiene a partir de otras fuentes de energía.", s: "Usos de la energía" },
+      { q: "¿Qué son las fuentes de energía?", a: "Son los materiales o fenómenos de la naturaleza que nos dan energía.", s: "Fuentes de energía" },
+      { q: "¿Tipos de fuentes de energía?", a: "Renovables y no renovables.", s: "Fuentes de energía" },
+      { q: "¿Qué son las energías renovables?", a: "Son las que vienen de recursos que no se acaban porque la naturaleza los regenera..", s: "Energías renovables" },
+      { q: "¿Tipos de energías renovables?", a: "Energía solar, mar, eólica, geotérmica, biomasa e hidráulica.", s: "Energías renovables" },
+      { q: "¿Cómo se define la energía solar?", a: "Es la que viene del sol y sirve para dar calor o producir electricidad.", s: "Tipos de energías renovables" },
+      { q: "¿Qué aprovecha la energía del mar?", a: "Aprovecha la fuerza de las mareas (maremotriz) y las olas(undimotriz).", s: "Tipos de energías renovables" },
+      { q: "¿Qué usa la energía eólica para producir electricidad?", a: "Usa la fuerza del viento.", s: "Tipos de energías renovables" },
+      { q: "¿De dónde viene la energía geotérmica?", a: "Viene del calor del interior de la Tierra.", s: "Tipos de energías renovables" },
+      { q: "¿Cómo se obtiene la biomasa?", a: "Se obtiene a partir de restos de plantas o de animales.", s: "Tipos de energías renovables" },
+      { q: "¿Qué fuerza utiliza la energía hidráulica?", a: "Utiliza la fuerza del agua al caer para producir electricidad.", s: "Tipos de energías renovables" },
+      { q: "¿Qué son las energías no renovables?", a: "Son las que se agotan al usarlas porque existen en cantidades limitadas, como los combustibles fósiles.", s: "Energías no renovables" },
+      { q: "¿Que fuentes de energía no renovables existen?", a: "El carbón, el petróleo, el gas natural y las empleadas para la producción de energía nuclear.", s: "Energías no renovables" },
+      { q: "¿Cómo se forma el carbón?", a: "Durante millones de años a partir de restos de plantas.", s: "Energías no renovables" },
+      { q: "¿Cómo se forma el petróleo y para qué se usa?", a: "Se forma durante millones de años a partir de seres vivos y se usa como combustible y para fabricar plásticos y pinturas.", s: "Energías no renovables" },
+      { q: "¿Qué es el gas natural, para qué se usa y donde se encuentra?", a: "Es una mezcla de gases que se quema para producir energía, usada en calefacción y agua caliente, se suele encontrar bajo tierra, a veces junto a los depósitos de petróleo.", s: "Energías no renovables" },
+      { q: "¿Qué materiales se utilizan para obtener energía nuclear y para qué se utiliza?", a: "Se utilizan materiales como el uranio o el plutonio. Se produce electricidad en las centrales nucleares", s: "Energías no renovables" }
+    ];
+
+    let currentQuestions = questionsTema;
     let currentIdx = 0;
+
     const qElem = document.getElementById('question');
     const aElem = document.getElementById('answer');
     const sElem = document.getElementById('source');
@@ -272,22 +343,38 @@
     const card = document.getElementById('card');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
+    const btnTema = document.getElementById('modeTema');
+    const btnResumen = document.getElementById('modeResumen');
+
+    function setMode(mode) {
+        if (mode === 'tema') {
+            currentQuestions = questionsTema;
+            btnTema.classList.add('active');
+            btnResumen.classList.remove('active');
+        } else {
+            currentQuestions = questionsResumen;
+            btnResumen.classList.add('active');
+            btnTema.classList.remove('active');
+        }
+        currentIdx = 0;
+        updateCard();
+    }
 
     function updateCard() {
         card.classList.remove('is-flipped');
         prevBtn.disabled = (currentIdx === 0);
-        nextBtn.disabled = (currentIdx === questions.length - 1);
+        nextBtn.disabled = (currentIdx === currentQuestions.length - 1);
 
         setTimeout(() => {
-            qElem.innerText = questions[currentIdx].q;
-            aElem.innerText = questions[currentIdx].a;
-            sElem.innerText = "📍 Referencia: " + questions[currentIdx].s;
-            pElem.innerText = `${currentIdx + 1} / ${questions.length}`;
+            qElem.innerText = currentQuestions[currentIdx].q;
+            aElem.innerText = currentQuestions[currentIdx].a;
+            sElem.innerText = currentQuestions[currentIdx].s ? "📍 Referencia: " + currentQuestions[currentIdx].s : "";
+            pElem.innerText = `${currentIdx + 1} / ${currentQuestions.length}`;
         }, 150);
     }
 
     function nextQuestion() {
-        if (currentIdx < questions.length - 1) {
+        if (currentIdx < currentQuestions.length - 1) {
             currentIdx++;
             updateCard();
         }
